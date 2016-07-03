@@ -1,6 +1,7 @@
 from xml.etree import ElementTree
 import json
 import os
+import argparse
 
 #replace %20 with space and remove "file://localhost/" prefix
 def sanitize_file_location(location):
@@ -69,9 +70,14 @@ def parse_library_xml_to_dict(root):
 		counter += 1
 	return tracks_dict	
 
-itunes_install_dir = os.path.normpath("")
-library_file = os.path.join(itunes_install_dir, "iTunes Music Library.xml")
-library_base_dir = os.path.join(itunes_install_dir, "iTunes Music")
+parser = argparse.ArgumentParser()
+parser.add_argument('--itunes-base-dir', type=str, dest="itunes_base_dir",
+						help='Base directory of iTunes library.')
+args = parser.parse_args()
+
+itunes_base_dir = os.path.normpath(args.itunes_base_dir)
+library_file = os.path.join(itunes_base_dir, "iTunes Music Library.xml")
+library_base_dir = os.path.join(itunes_base_dir, "iTunes Music")
 
 root = ElementTree.parse(library_file).getroot()
 tracks_dict = parse_library_xml_to_dict(root)
