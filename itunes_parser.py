@@ -83,7 +83,7 @@ def escape_unsafe_filename_characters(str):
 	.replace("|","_") \
 	.replace("?","_") \
 	.replace("*","_") 
-	return str
+	return str.strip()
 
 def copy_file(source, dest):
 	if not os.exists(os.path.split(dest)[0]):
@@ -105,16 +105,17 @@ def get_list_of_files_to_copy(dest_base_dir, library_base_dir, tracks_dict):
 				relative_path = strip_prefix(location, library_base_dir)
 			else:
 				filename = os.path.split(location)[1]
+				extension = os.path.splitext(filename)[1]
 				if track['artist'] is not None and track['album'] is not None:
 					relative_path = os.path.join(
 						escape_unsafe_filename_characters(track['artist']),
 						escape_unsafe_filename_characters(track['album']),
-						escape_unsafe_filename_characters(track['name'])
+						escape_unsafe_filename_characters(track['name']) + extension
 					)
 				elif track['artist'] is not None:
 					relative_path = os.path.join(
 						escape_unsafe_filename_characters(track['artist']),
-						escape_unsafe_filename_characters(track['name'])
+						escape_unsafe_filename_characters(track['name']) + extension
 					)
 				else:
 					relative_path = filename
