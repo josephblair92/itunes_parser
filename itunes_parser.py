@@ -2,11 +2,13 @@ from xml.etree import ElementTree
 import json
 import os
 import argparse
+import urllib.parse
 
 #replace %20 with space and remove "file://localhost/" prefix
 def sanitize_file_location(location):
-	location = location.replace("%20", " ")
+	location = urllib.parse.unquote(location)
 	location = strip_prefix(location, "file://localhost/")
+	location = os.path.normpath(location)
 	return location
 
 def strip_prefix(str, prefix):
@@ -68,16 +70,57 @@ def parse_library_xml_to_dict(root):
 			else:
 				raise ValueError("unexpected tag")
 		counter += 1
-	return tracks_dict	
+	return tracks_dict
+
+def escape_unsafe_filename_characters(str):
+	str = str.replace("<","_") \
+	.replace(">","_") \
+	.replace(":","_") \
+	.replace("\"","_") \
+	.replace("/","_") \
+	.replace("\\","_") \
+	.replace("|","_") \
+	.replace("?","_") \
+	.replace("*","_") 
+	return str
+
+def copy(dest_base_dir, library_base_dir, tracks_dict):
+	for key, track in tracks_dict.items():
+		location = track['location']
+		if location is not None:
+			if location.startswith(library_base_dir):
+				relative_path = strip_prefix(location, library_base_dir)
+			else:
+				filename = os.path.split(location)[1]
+				if track['artist'] is not None and track['album'] is not None:
+					relative_path = os.path.join(
+						escape_unsafe_filename_characters(track['artist']),
+						escape_unsafe_filename_characters(track['album']),
+						filename
+					)
+				elif track['artist'] is not None:
+					relative_path = os.path.join(
+						escape_unsafe_filename_characters(track['artist']),
+						filename
+					)
+				else:
+					relative_path = filename
+			dest_path = os.path.join(dest_base_dir, relative_path)
+			print(dest_path.encode("utf-8"))
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--itunes-base-dir', type=str, dest="itunes_base_dir",
+						help='Base directory of iTunes library.')
+parser.add_argument('--dest-base-dir', type=str, dest="dest_base_dir",
 						help='Base directory of iTunes library.')
 args = parser.parse_args()
 
 itunes_base_dir = os.path.normpath(args.itunes_base_dir)
 library_file = os.path.join(itunes_base_dir, "iTunes Music Library.xml")
-library_base_dir = os.path.join(itunes_base_dir, "iTunes Music")
+library_base_dir = os.path.join(itunes_base_dir, "iTunes Music", "")
 
 root = ElementTree.parse(library_file).getroot()
 tracks_dict = parse_library_xml_to_dict(root)
+
+dest_base_dir = os.path.normpath(args.dest_base_dir)
+copy(dest_base_dir, library_base_dir, tracks_dict)	
