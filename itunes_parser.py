@@ -90,7 +90,14 @@ def copy_file(source, dest):
 		os.makedirs(dest)
 	shutil.copyfile(source, dest)
 
-def copy_library(dest_base_dir, library_base_dir, tracks_dict):
+def print_str(str):
+	try:
+		print(str)
+	except Exception as e:
+		print(str.encode("utf-8"))
+
+def get_list_of_files_to_copy(dest_base_dir, library_base_dir, tracks_dict):
+	files_to_copy_list = list()
 	for key, track in tracks_dict.items():
 		location = track['location']
 		if location is not None:
@@ -112,7 +119,17 @@ def copy_library(dest_base_dir, library_base_dir, tracks_dict):
 				else:
 					relative_path = filename
 			dest_path = os.path.join(dest_base_dir, relative_path)
-			print(dest_path.encode("utf-8"))
+			files_to_copy_list.append((track['location'], dest_path))
+	return files_to_copy_list
+
+def copy_library(dest_base_dir, library_base_dir, tracks_dict):
+	files_to_copy_list = get_list_of_files_to_copy(dest_base_dir, library_base_dir, tracks_dict)
+	total_files = len(files_to_copy_list)
+	counter = 1
+	for file in files_to_copy_list:
+		print_str("Copying " + file[0] + " to " + file[1] + " (" + str(counter) + "/" + str(total_files) + ")")
+		counter += 1
+		#copy_file(file[0], file[1])
 
 parser = argparse.ArgumentParser()
 parser.add_argument('--itunes-base-dir', type=str, dest="itunes_base_dir",
