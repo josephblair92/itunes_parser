@@ -3,6 +3,7 @@ import json
 import os
 import argparse
 import urllib.parse
+import shutil
 
 #replace %20 with space and remove "file://localhost/" prefix
 def sanitize_file_location(location):
@@ -83,6 +84,11 @@ def escape_unsafe_filename_characters(str):
 	.replace("?","_") \
 	.replace("*","_") 
 	return str
+
+def copy_file(source, dest):
+	if not os.exists(os.path.split(dest)[0]):
+		os.makedirs(dest)
+	shutil.copyfile(source, dest)
 
 def copy_library(dest_base_dir, library_base_dir, tracks_dict):
 	for key, track in tracks_dict.items():
