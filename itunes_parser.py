@@ -84,7 +84,7 @@ def escape_unsafe_filename_characters(str):
 	.replace("*","_") 
 	return str
 
-def copy(dest_base_dir, library_base_dir, tracks_dict):
+def copy_library(dest_base_dir, library_base_dir, tracks_dict):
 	for key, track in tracks_dict.items():
 		location = track['location']
 		if location is not None:
@@ -96,12 +96,12 @@ def copy(dest_base_dir, library_base_dir, tracks_dict):
 					relative_path = os.path.join(
 						escape_unsafe_filename_characters(track['artist']),
 						escape_unsafe_filename_characters(track['album']),
-						filename
+						escape_unsafe_filename_characters(track['name'])
 					)
 				elif track['artist'] is not None:
 					relative_path = os.path.join(
 						escape_unsafe_filename_characters(track['artist']),
-						filename
+						escape_unsafe_filename_characters(track['name'])
 					)
 				else:
 					relative_path = filename
@@ -123,4 +123,4 @@ root = ElementTree.parse(library_file).getroot()
 tracks_dict = parse_library_xml_to_dict(root)
 
 dest_base_dir = os.path.normpath(args.dest_base_dir)
-copy(dest_base_dir, library_base_dir, tracks_dict)	
+copy_library(dest_base_dir, library_base_dir, tracks_dict)	
