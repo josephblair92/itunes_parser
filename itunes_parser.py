@@ -17,6 +17,17 @@ def strip_prefix(str, prefix):
 		str = str[len(prefix):]
 	return str
 
+#translates iTunes' "Kind" field to smaller subset of values
+def kind_to_file_type(kind):
+	if "audio" in kind:
+		return "audio"
+	elif "video" in kind or "movie" in kind:
+		return "video"
+	elif "game" in kind:
+		return "game"
+	else:
+		return "unknown"
+
 #Takes the list of tags contained in each track's <dict> tag and parses them to a Python dictionary with only the fields we're interested in
 def parse_track_data_to_dict(track_data):
 	#initialize variables
@@ -36,7 +47,10 @@ def parse_track_data_to_dict(track_data):
 		if field.tag == "key" and field.text == "Album":
 			album = track_data[i+1].text
 		if field.tag == "key" and field.text == "Track Number":
-			track_number = track_data[i+1].text																
+			track_number = track_data[i+1].text
+		if field.tag == "key" and field.text == "Kind":
+			kind = track_data[i+1].text
+			file_type = kind_to_file_type(kind)
 		if field.tag == "key" and field.text == "Location":
 			location = track_data[i+1].text
 			location = sanitize_file_location(location)
@@ -45,7 +59,8 @@ def parse_track_data_to_dict(track_data):
 		"artist": artist,
 		"album": album,
 		"track_number": track_number,
-		"location": location
+		"location": location,
+		"file_type": file_type
 	}
 	return track_data_dict
 
