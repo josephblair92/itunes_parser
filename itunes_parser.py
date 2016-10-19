@@ -111,29 +111,34 @@ def print_str(str):
 	except Exception as e:
 		print(str.encode("utf-8"))
 
+def get_target_relative_file_path(track, library_base_dir):
+	location = track['location']
+	if location is not None:
+		if location.startswith(library_base_dir):
+			relative_path = strip_prefix(location, library_base_dir)
+		else:
+			filename = os.path.split(location)[1]
+			extension = os.path.splitext(filename)[1]
+			if track['artist'] is not None and track['album'] is not None:
+				relative_path = os.path.join(
+					escape_unsafe_filename_characters(track['artist']),
+					escape_unsafe_filename_characters(track['album']),
+					escape_unsafe_filename_characters(track['name']) + extension
+				)
+			elif track['artist'] is not None:
+				relative_path = os.path.join(
+					escape_unsafe_filename_characters(track['artist']),
+					escape_unsafe_filename_characters(track['name']) + extension
+				)
+			else:
+				relative_path = filename
+		return relative_path
+
 def get_list_of_files_to_copy(dest_base_dir, library_base_dir, tracks_dict):
 	files_to_copy_list = list()
 	for key, track in tracks_dict.items():
-		location = track['location']
-		if location is not None:
-			if location.startswith(library_base_dir):
-				relative_path = strip_prefix(location, library_base_dir)
-			else:
-				filename = os.path.split(location)[1]
-				extension = os.path.splitext(filename)[1]
-				if track['artist'] is not None and track['album'] is not None:
-					relative_path = os.path.join(
-						escape_unsafe_filename_characters(track['artist']),
-						escape_unsafe_filename_characters(track['album']),
-						escape_unsafe_filename_characters(track['name']) + extension
-					)
-				elif track['artist'] is not None:
-					relative_path = os.path.join(
-						escape_unsafe_filename_characters(track['artist']),
-						escape_unsafe_filename_characters(track['name']) + extension
-					)
-				else:
-					relative_path = filename
+		relative_path = get_target_relative_file_path(track, library_base_dir)
+		if relative_path is not None:
 			dest_path = os.path.join(dest_base_dir, relative_path)
 			files_to_copy_list.append((track['location'], dest_path))
 	return files_to_copy_list
@@ -157,8 +162,8 @@ args = parser.parse_args()
 itunes_base_dir = os.path.normpath(args.itunes_base_dir)
 library_file = os.path.join(itunes_base_dir, "iTunes Music Library.xml")
 library_base_dir = os.path.join(itunes_base_dir, "iTunes Music", "")
-
 root = ElementTree.parse(library_file).getroot()
+
 tracks_dict = parse_library_xml_to_dict(root)
 
 dest_base_dir = os.path.normpath(args.dest_base_dir)
