@@ -88,6 +88,38 @@ def parse_library_xml_to_dict(root):
 		counter += 1
 	return tracks_dict
 
+def parse_playlist_xml_to_dict(playlist_xml, tracks_dict, library_base_dir):
+	tracks = list()
+	#for subelement in playlist_xml:
+	for i in range(0, len(playlist_xml)):
+		field = playlist_xml[i]
+		#if the tag is one of the keys that we're interested in, get the value of the next tag in the list
+		if field.tag == "key" and field.text == "Name":
+			name = playlist_xml[i+1].text
+		if field.tag == "key" and field.text == "Playlist Items":
+			#get list of playlist items and iterate
+			playlist_items_xml = list(playlist_xml[i+1])
+			for playlist_item in playlist_items_xml:
+				#track ID will always be the text of the second tag in the playlist <dict> entry
+				track_id = list(playlist_item)[1].text
+				track = tracks_dict[track_id]
+				relative_file_path = get_target_relative_file_path(track, library_base_dir)
+				tracks.append(relative_file_path)
+
+	return {
+		"name": name,
+		"tracks": tracks
+	}
+
+def parse_playlists(root, tracks_dict, library_base_dir):
+	playlists_xml = root.find("dict").find("array")
+	playlists = list()
+	for element in playlists_xml:
+		playlist_xml = list(element)
+		playlist = parse_playlist_xml_to_dict(playlist_xml, tracks_dict, library_base_dir)
+		playlists.append(playlist)
+	return playlists
+
 def escape_unsafe_filename_characters(str):
 	str = str.replace("<","_") \
 	.replace(">","_") \
@@ -162,9 +194,12 @@ args = parser.parse_args()
 itunes_base_dir = os.path.normpath(args.itunes_base_dir)
 library_file = os.path.join(itunes_base_dir, "iTunes Music Library.xml")
 library_base_dir = os.path.join(itunes_base_dir, "iTunes Music", "")
+
 root = ElementTree.parse(library_file).getroot()
 
 tracks_dict = parse_library_xml_to_dict(root)
 
 dest_base_dir = os.path.normpath(args.dest_base_dir)
 copy_library(dest_base_dir, library_base_dir, tracks_dict)	
+
+playlists = parse_playlists(root, tracks_dict, library_base_dir)
