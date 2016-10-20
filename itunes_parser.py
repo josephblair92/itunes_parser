@@ -133,7 +133,7 @@ def escape_unsafe_filename_characters(str):
 	return str.strip()
 
 def copy_file(source, dest):
-	if not os.exists(os.path.split(dest)[0]):
+	if not os.path.exists(os.path.split(dest)[0]):
 		os.makedirs(dest)
 	shutil.copyfile(source, dest)
 
