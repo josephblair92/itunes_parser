@@ -184,6 +184,17 @@ def copy_library(dest_base_dir, library_base_dir, tracks_dict):
 		counter += 1
 		#copy_file(file[0], file[1])
 
+def copy_playlists(playlists, dest_base_dir):
+	if not os.path.exists(dest_base_dir):
+		os.makedirs(dest_base_dir)
+	for playlist in playlists:
+		filename = os.path.join(dest_base_dir, escape_unsafe_filename_characters(playlist["name"])) + ".m3u"
+		output_file = open(filename, "w")
+		for track in playlist["tracks"]:
+			if track is not None:
+				output_file.write(track + "\n")
+		output_file.close()
+
 parser = argparse.ArgumentParser()
 parser.add_argument('--itunes-base-dir', type=str, dest="itunes_base_dir",
 						help='Base directory of iTunes library.')
@@ -203,3 +214,4 @@ dest_base_dir = os.path.normpath(args.dest_base_dir)
 copy_library(dest_base_dir, library_base_dir, tracks_dict)	
 
 playlists = parse_playlists(root, tracks_dict, library_base_dir)
+copy_playlists(playlists, dest_base_dir)
