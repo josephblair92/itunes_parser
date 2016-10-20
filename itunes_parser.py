@@ -113,11 +113,21 @@ def parse_playlist_xml_to_dict(playlist_xml, tracks_dict, library_base_dir):
 
 def parse_playlists(root, tracks_dict, library_base_dir):
 	playlists_xml = root.find("dict").find("array")
+	blacklist = [
+		"####!####",
+		"Apps",
+		"Genius",
+		"iTunes U",
+		"Music",
+		"PDFs",
+		"Rentals"
+	]
 	playlists = list()
 	for element in playlists_xml:
 		playlist_xml = list(element)
 		playlist = parse_playlist_xml_to_dict(playlist_xml, tracks_dict, library_base_dir)
-		playlists.append(playlist)
+		if playlist["name"] not in blacklist:
+			playlists.append(playlist)
 	return playlists
 
 def escape_unsafe_filename_characters(str):
